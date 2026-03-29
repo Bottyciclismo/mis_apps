@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mis Apps</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      display: flex;
+    }
+
+    #menu {
+      width: 250px;
+      background: #1fb5de;
+      color: white;
+      height: 100vh;
+      padding: 10px;
+    }
+
+    #menu h2 {
+      text-align: center;
+    }
+
+    .boton {
+      display: block;
+      background: #1d6bd1;
+      margin: 10px 0;
+      padding: 10px;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .boton:hover {
+      background: #1abc9c;
+    }
+
+    #contenido {
+      flex: 1;
+      padding: 10px;
+    }
+
+    #visor {
+      width: 100%;
+      height: 90vh;
+      border: none;
+    }
+
+    #cerrar {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- MENU -->
+  <div id="menu">
+    <h2>📂 Apps by Botty</h2>
+
+    <div class="boton" onclick="abrirApp('DocCarousel_5.html')">Catalogos y tarifas</div>
+	<div class="boton" onclick="abrirApp('app1.html')">Calculadora by Botty</div>
+	<div class="boton" onclick="abrirApp('alblr.html')">Albaranes</div>
+    <div class="boton" onclick="abrirApp('app2.html')">Gestor de Filtros</div>
+    <div class="boton" onclick="abrirApp('app3.html')">Sistema Diagnostico</div>
+    <div class="boton" onclick="abrirApp('https://elbotyciclismo.pythonanywhere.com')">
+      Control_Stock
+    </div>
+	<div class="boton" onclick="abrirApp('https://elbottyreseteos.lovable.app')">
+      Reset Compresores
+	</div>
+	<div class="boton" onclick="abrirApp ('https://bottyciclismo.github.io/botty-hvac-tool')">
+	  HVAC TOOL
+	 </div> 
+  </div> <!-- 🔥 ESTE ES EL QUE FALTABA -->
+
+  <!-- CONTENIDO -->
+  <div id="contenido">
+
+    <button id="cerrar" onclick="cerrarApp()">❌ Volver al menú</button>
+
+    <iframe id="visor"></iframe>
+
+  </div>
+
+  <script>
+    function abrirApp(ruta) {
+      document.getElementById("visor").src = ruta;
+    }
+
+    function cerrarApp() {
+      document.getElementById("visor").src = "";
+    }
+  </script>
+
+</body>
+</html>

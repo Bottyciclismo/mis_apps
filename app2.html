@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<!-- saved from url=(0062)file:///C:/Users/botty/Downloads/gestor_compresores%20(1).html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestor de Compresores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2E7D32;
+            --primary-light: #4CAF50;
+            --primary-dark: #1B5E20;
+            --secondary: #1976D2;
+            --accent: #FF6F00;
+            --bg: #FAFAFA;
+            --card-bg: #FFFFFF;
+            --text: #212121;
+            --text-light: #757575;
+            --border: #E0E0E0;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 80px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header .info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            padding: 15px;
+            overflow-x: auto;
+            background: white;
+            box-shadow: 0 2px 4px var(--shadow);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .toolbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px var(--shadow);
+            border-left: 4px solid;
+        }
+
+        .card.aceite { border-left-color: #FBC02D; background: #FFF8E1; }
+        .card.filtro-aceite { border-left-color: #FB8C00; background: #FFF3E0; }
+        .card.filtro-aire { border-left-color: #43A047; background: #E8F5E9; }
+        .card.filtro-separador { border-left-color: #1E88E5; background: #E3F2FD; }
+        .card.correas { border-left-color: #8E24AA; background: #F3E5F5; }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .equipo-item {
+            padding: 15px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .equipo-item:hover {
+            background: #E8F5E9;
+            border-color: var(--primary);
+        }
+
+        .equipo-item.selected {
+            background: #E8F5E9;
+            border-color: var(--primary);
+        }
+
+        .equipo-codigo {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--primary);
+        }
+
+        .equipo-cliente {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow);
+            z-index: 2000;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .toolbar {
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 id="equipoCodigo">Alani - AX 302 BD SD - IYD0 071913</h1>
+        <div class="info">
+            <div id="equipoInfo">Cliente: ALANI - 96 122 61 91 - HECTOR - 659 588 404 | Modelo: AIRBLOCK 302 BD SD</div>
+            <div id="equipoSerie" style="margin-top: 4px; color: #81C784;">Nº Serie/Año: IYD0071913  //  2018</div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <button class="btn btn-outline" onclick="cargarExcel()">📂 Excel</button>
+        <button class="btn btn-primary" onclick="guardar()">💾 Guardar</button>
+        <button class="btn btn-secondary" onclick="verEquipos()">📋 Ver</button>
+        <button class="btn btn-outline" onclick="nuevo()">🆕 Nuevo</button>
+        <button class="btn btn-accent" onclick="exportarExcel()">📊 Importar</button>
+        <button class="btn btn-outline" onclick="exportarBaseDatos()" style="background: #4CAF50; color: white;">💾 Exportar BD</button>
+        <button class="btn btn-outline" onclick="document.getElementById(&#39;importBD&#39;).click()">📥 Importar BD</button>
+        <select id="selectorModelos" onchange="cargarPorModelo()" style="padding: 10px; border-radius: 8px; border: 2px solid #E0E0E0; font-size: 14px; min-width: 200px; cursor: pointer;"><option value="">🔍 Selecciona modelo...</option><option value="ABAC VT-15">ABAC VT-15</option><option value="AIRBLOCK 302 BD SD">AIRBLOCK 302 BD SD</option><option value="AIRBLOK 202 BD 10 B.">AIRBLOK 202 BD 10 B.</option><option value="AIRBLOK 302 BD SD">AIRBLOK 302 BD SD</option><option value="AIRBLOK 302 SD">AIRBLOK 302 SD</option><option value="AIRBLOK 403  BD SD">AIRBLOK 403  BD SD</option><option value="AIRBLOK AX 403  BD SD">AIRBLOK AX 403  BD SD</option><option value="Atlas Copco AC55E300T">Atlas Copco AC55E300T</option><option value="B-5900">B-5900</option><option value="B-5900-B-270 FT">B-5900-B-270 FT</option><option value="Black Decker">Black Decker</option><option value="BÉTICO ER - 18 - IZQDA">BÉTICO ER - 18 - IZQDA</option><option value="ER 18,5 - DCHA">ER 18,5 - DCHA</option><option value="FG-15-2010  20HP">FG-15-2010  20HP</option><option value="FG. 1510-20HP">FG. 1510-20HP</option><option value="FORMULA 37 10">FORMULA 37 10</option><option value="FORMULA GENESIS 15 HP">FORMULA GENESIS 15 HP</option><option value="INGERSOLL-RAND ML-18-5">INGERSOLL-RAND ML-18-5</option><option value="MONCAYO 2020">MONCAYO 2020</option><option value="NEWSILVER D 15 500">NEWSILVER D 15 500</option><option value="NEWSILVER D 30/500">NEWSILVER D 30/500</option><option value="NS D 10 500">NS D 10 500</option><option value="Newsilver D 10 500">Newsilver D 10 500</option><option value="PUSKA 5,5">PUSKA 5,5</option><option value="PUSKA RTA 15 / 10">PUSKA RTA 15 / 10</option><option value="SMART 2010">SMART 2010</option><option value="VT-1510">VT-1510</option><option value="VT-20 VISS">VT-20 VISS</option></select>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="cards-grid">
+            <!-- Aceite -->
+            <div class="card aceite">
+                <div class="card-title">🛢️ ACEITE</div>
+                <div class="input-group">
+                    <input type="text" id="aceite-ref1" placeholder="Referencia 1">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="aceite-ref2" placeholder="Referencia 2">
+                </div>
+            </div>
+
+            <!-- Filtro Aceite -->
+            <div class="card filtro-aceite">
+                <div class="card-title">🔧 FILTRO ACEITE</div>
+                <div class="input-group">
+                    <input type="text" id="filtro-aceite-ref1" placeholder="Referencia 1">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="filtro-aceite-ref2" placeholder="Referencia 2">
+                </div>
+            </div>
+
+            <!-- Filtro Aire -->
+            <div class="card filtro-aire">
+                <div class="card-title">💨 FILTRO AIRE</div>
+                <div class="input-group">
+                    <input type="text" id="filtro-aire-ref1" placeholder="Referencia 1">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="filtro-aire-ref2" placeholder="Referencia 2">
+                </div>
+            </div>
+
+            <!-- Filtro Separador -->
+            <div class="card filtro-separador">
+                <div class="card-title">⚙️ FILTRO SEPARADOR</div>
+                <div class="input-group">
+                    <input type="text" id="filtro-separador-ref1" placeholder="Referencia 1">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="filtro-separador-ref2" placeholder="Referencia 2">
+                </div>
+            </div>
+
+            <!-- Correas -->
+            <div class="card correas">
+                <div class="card-title">🔗 CORREAS</div>
+                <div class="input-group">
+                    <input type="text" id="correas-ref1" placeholder="Referencia 1">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="correas-ref2" placeholder="Referencia 2">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Equipos -->
+    <div id="modalEquipos" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 Equipos Guardados</h2>
+                <button class="close-btn" onclick="cerrarModal(&#39;modalEquipos&#39;)">×</button>
+            </div>
+            <div class="modal-body" id="listaEquipos">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="cerrarModal(&#39;modalEquipos&#39;)">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input file oculto -->
+    <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls" onchange="procesarExcel(event)">
+    <input type="file" id="importBD" class="file-input" accept=".json" onchange="importarBaseDatos(event)">
+
+    <!-- Toast -->
+    <div id="toast" class="toast">✓ Modelo cargado: AIRBLOCK 302 BD SD</div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+        // Estado de la aplicación
+        let equipoActual = {
+            codigo: null,
+            cliente: '',
+            modelo: '',
+            num_serie: '',
+            referencias: {}
+        };
+
+        // Categorías
+        const CATEGORIAS = [
+            'aceite',
+            'filtro-aceite',
+            'filtro-aire',
+            'filtro-separador',
+            'correas'
+        ];
+
+        // Inicializar
+        window.addEventListener('DOMContentLoaded', () => {
+            cargarDatosLocalStorage();
+            actualizarDesplegableModelos();
+        });
+
+        // Actualizar desplegable de modelos
+        function actualizarDesplegableModelos() {
+            const equipos = JSON.parse(localStorage.getItem('compresores') || '[]');
+            const selector = document.getElementById('selectorModelos');
+            
+            // Obtener modelos únicos
+            const modelos = [...new Set(equipos
+                .map(e => e.modelo)
+                .filter(m => m && m.trim() !== '')
+            )].sort();
+            
+            // Limpiar opciones excepto la primera
+            selector.innerHTML = '<option value="">🔍 Selecciona modelo...</option>';
+            
+            // Añadir opciones
+            modelos.forEach(modelo => {
+                const option = document.createElement('option');
+                option.value = modelo;
+                option.textContent = modelo;
+                selector.appendChild(option);
+            });
+            
+            console.log(`📋 ${modelos.length} modelos únicos en el desplegable`);
+        }
+
+        // Cargar equipo por modelo seleccionado
+        function cargarPorModelo() {
+            const selector = document.getElementById('selectorModelos');
+            const modeloSeleccionado = selector.value;
+            
+            if (!modeloSeleccionado) return;
+            
+            const equipos = JSON.parse(localStorage.getItem('compresores') || '[]');
+            const equipo = equipos.find(e => e.modelo === modeloSeleccionado);
+            
+            if (equipo) {
+                equipoActual = { ...equipo };
+                
+                // Cargar en UI
+                CATEGORIAS.forEach(cat => {
+                    const refs = equipo.referencias[cat] || { ref1: '', ref2: '' };
+                    document.getElementById(`${cat}-ref1`).value = refs.ref1;
+                    document.getElementById(`${cat}-ref2`).value = refs.ref2;
+                });
+                
+                actualizarHeader();
+                mostrarToast('✓ Modelo cargado: ' + modeloSeleccionado);
+            }
+        }
+
+        // Nuevo equipo
+        function nuevo() {
+            equipoActual = {
+                codigo: null,
+                cliente: '',
+                modelo: '',
+                num_serie: '',
+                referencias: {}
+            };
+            
+            document.getElementById('equipoCodigo').textContent = 'AX ---';
+            document.getElementById('equipoInfo').textContent = 'Cliente: - | Modelo: -';
+            document.getElementById('equipoSerie').textContent = 'Nº Serie/Año: -';
+            
+            CATEGORIAS.forEach(cat => {
+                document.getElementById(`${cat}-ref1`).value = '';
+                document.getElementById(`${cat}-ref2`).value = '';
+            });
+            
+            mostrarToast('✨ Nuevo equipo');
+        }
+
+        // Cargar Excel
+        function cargarExcel() {
+            document.getElementById('fileInput').click();
+        }
+
+        function procesarExcel(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    console.log('📊 Procesando Excel...');
+                    
+                    // Extraer código del nombre del archivo
+                    equipoActual.codigo = file.name.replace(/\.(xlsx|xls)$/i, '');
+                    console.log('🏷️ Código:', equipoActual.codigo);
+                    
+                    // Función para obtener celda específica (fila, columna)
+                    function getCelda(fila, columna) {
+                        const letra = String.fromCharCode(64 + columna);
+                        const cellAddress = letra + fila;
+                        const cell = firstSheet[cellAddress];
+                        
+                        console.log(`  Leyendo ${cellAddress}:`, cell);
+                        
+                        if (cell && cell.v !== null && cell.v !== undefined) {
+                            const valor = cell.v.toString().trim();
+                            console.log(`    → Valor: "${valor}"`);
+                            return valor;
+                        }
+                        console.log(`    → Vacía`);
+                        return '';
+                    }
+                    
+                    // Fila 2: Cliente (columna A), Modelo (columna E=5 o G=7) y Nº Serie (columna K=11)
+                    equipoActual.cliente = getCelda(2, 1);  // A2
+                    
+                    // Modelo: Intentar E2 primero, si está vacío intentar G2
+                    equipoActual.modelo = getCelda(2, 5);   // E2
+                    if (!equipoActual.modelo || equipoActual.modelo.trim() === '') {
+                        equipoActual.modelo = getCelda(2, 7);   // G2 si E2 está vacío
+                    }
+                    
+                    equipoActual.num_serie = getCelda(2, 11); // K2
+                    
+                    console.log('👤 Cliente:', equipoActual.cliente);
+                    console.log('🔧 Modelo:', equipoActual.modelo, '(de E2 o G2)');
+                    console.log('🔢 Nº Serie/Año:', equipoActual.num_serie);
+                    
+                    // LEER REFERENCIAS DE COLUMNA A (columna 1)
+                    const ref_aceite_1 = getCelda(6, 1);
+                    const ref_aceite_2 = getCelda(7, 1);
+                    
+                    const ref_filtro_aceite_1 = getCelda(11, 1);
+                    const ref_filtro_aceite_2 = getCelda(12, 1);
+                    
+                    const ref_filtro_aire_1 = getCelda(16, 1);
+                    const ref_filtro_aire_2 = getCelda(17, 1);
+                    
+                    const ref_filtro_separador_1 = getCelda(20, 1);
+                    const ref_filtro_separador_2 = getCelda(21, 1);
+                    
+                    const ref_correas_1 = getCelda(26, 1);
+                    const ref_correas_2 = getCelda(27, 1);
+                    
+                    console.log('\n📋 Referencias leídas de columna A:');
+                    console.log('ACEITE (A6,A7):', ref_aceite_1, '|', ref_aceite_2);
+                    console.log('FILTRO ACEITE (A11,A12):', ref_filtro_aceite_1, '|', ref_filtro_aceite_2);
+                    console.log('FILTRO AIRE (A16,A17):', ref_filtro_aire_1, '|', ref_filtro_aire_2);
+                    console.log('FILTRO SEPARADOR (A20,A21):', ref_filtro_separador_1, '|', ref_filtro_separador_2);
+                    console.log('CORREAS (A26,A27):', ref_correas_1, '|', ref_correas_2);
+                    
+                    // Aplicar valores
+                    document.getElementById('aceite-ref1').value = ref_aceite_1;
+                    document.getElementById('aceite-ref2').value = ref_aceite_2;
+                    
+                    document.getElementById('filtro-aceite-ref1').value = ref_filtro_aceite_1;
+                    document.getElementById('filtro-aceite-ref2').value = ref_filtro_aceite_2;
+                    
+                    document.getElementById('filtro-aire-ref1').value = ref_filtro_aire_1;
+                    document.getElementById('filtro-aire-ref2').value = ref_filtro_aire_2;
+                    
+                    document.getElementById('filtro-separador-ref1').value = ref_filtro_separador_1;
+                    document.getElementById('filtro-separador-ref2').value = ref_filtro_separador_2;
+                    
+                    document.getElementById('correas-ref1').value = ref_correas_1;
+                    document.getElementById('correas-ref2').value = ref_correas_2;
+                    
+                    // Actualizar header
+                    actualizarHeader();
+                    mostrarToast('✓ Excel cargado: ' + equipoActual.codigo);
+                    
+                } catch (error) {
+                    console.error('❌ Error:', error);
+                    mostrarToast('❌ Error: ' + error.message);
+                }
+            };
+            
+            reader.onerror = (error) => {
+                console.error('❌ Error al leer archivo:', error);
+                mostrarToast('❌ Error al leer el archivo');
+            };
+            
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        }
+
+        // Guardar
+        function guardar() {
+            if (!equipoActual.codigo) {
+                mostrarToast('⚠️ Carga un Excel primero');
+                return;
+            }
+            
+            // Recoger referencias de los inputs
+            equipoActual.referencias = {};
+            CATEGORIAS.forEach(cat => {
+                equipoActual.referencias[cat] = {
+                    ref1: document.getElementById(`${cat}-ref1`).value.trim(),
+                    ref2: document.getElementById(`${cat}-ref2`).value.trim()
+                };
+            });
+            
+            // Guardar en localStorage
+            let equipos = JSON.parse(localStorage.getItem('compresores') || '[]');
+            
+            // Buscar si ya existe
+            const index = equipos.findIndex(e => e.codigo === equipoActual.codigo);
+            if (index >= 0) {
+                equipos[index] = { ...equipoActual };
+            } else {
+                equipos.push({ ...equipoActual });
+            }
+            
+            localStorage.setItem('compresores', JSON.stringify(equipos));
+            actualizarDesplegableModelos(); // Actualizar desplegable
+            mostrarToast('✓ Guardado correctamente');
+        }
+
+        // Ver equipos
+        function verEquipos() {
+            const equipos = JSON.parse(localStorage.getItem('compresores') || '[]');
+            const lista = document.getElementById('listaEquipos');
+            
+            if (equipos.length === 0) {
+                lista.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div>No hay equipos guardados</div>
+                    </div>
+                `;
+            } else {
+                lista.innerHTML = equipos.map(equipo => `
+                    <div class="equipo-item" onclick="cargarEquipo('${equipo.codigo}')">
+                        <div class="equipo-codigo">${equipo.codigo}</div>
+                        <div class="equipo-cliente">${equipo.cliente}</div>
+                        <div class="equipo-cliente">${equipo.modelo}</div>
+                        <div class="equipo-cliente" style="color: #4CAF50;">${equipo.num_serie || '-'}</div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('modalEquipos').classList.add('show');
+        }
+
+        // Cargar equipo
+        function cargarEquipo(codigo) {
+            const equipos = JSON.parse(localStorage.getItem('compresores') || '[]');
+            const equipo = equipos.find(e => e.codigo === codigo);
+            
+            if (equipo) {
+                equipoActual = { ...equipo };
+                
+                // Cargar en UI
+                CATEGORIAS.forEach(cat => {
+                    const refs = equipo.referencias[cat] || { ref1: '', ref2: '' };
+                    document.getElementById(`${cat}-ref1`).value = refs.ref1;
+                    document.getElementById(`${cat}-ref2`).value = refs.ref2;
+                });
+                
+                actualizarHeader();
+                cerrarModal('modalEquipos');
+                mostrarToast('✓ Equipo cargado');
+            }
+        }
+
+        // Exportar a Excel
+        function exportarExcel() {
+            const equipos = JSON.parse(localStorage.getItem('compresores') || '[]');
+            
+            if (equipos.length === 0) {
+                mostrarToast('⚠️ No hay datos para exportar');
+                return;
+            }
+            
+            // Crear datos para Excel
+            const data = [
+                ['Código', 'Cliente', 'Modelo', 'Nº Serie/Año',
+                 'Aceite Ref1', 'Aceite Ref2',
+                 'Filtro Aceite Ref1', 'Filtro Aceite Ref2',
+                 'Filtro Aire Ref1', 'Filtro Aire Ref2',
+                 'Filtro Separador Ref1', 'Filtro Separador Ref2',
+                 'Correas Ref1', 'Correas Ref2']
+            ];
+            
+            equipos.forEach(equipo => {
+                const row = [
+                    equipo.codigo,
+                    equipo.cliente,
+                    equipo.modelo,
+                    equipo.num_serie || ''
+                ];
+                
+                CATEGORIAS.forEach(cat => {
+                    const refs = equipo.referencias[cat] || { ref1: '', ref2: '' };
+                    row.push(refs.ref1, refs.ref2);
+                });
+                
+                data.push(row);
+            });
+            
+            // Crear Excel
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Compresores');
+            
+            // Descargar
+            const fecha = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Compresores_${fecha}.xlsx`);
+            
+            mostrarToast('✓ Excel exportado');
+        }
+
+        // Exportar Base de Datos completa
+        function exportarBaseDatos() {
+            const equipos = JSON.parse(localStorage.getItem('compresores') || '[]');
+            
+            if (equipos.length === 0) {
+                mostrarToast('⚠️ No hay datos para exportar');
+                return;
+            }
+            
+            // Crear objeto JSON
+            const baseDatos = {
+                version: '1.0',
+                fecha: new Date().toISOString(),
+                total_equipos: equipos.length,
+                equipos: equipos
+            };
+            
+            // Convertir a JSON
+            const json = JSON.stringify(baseDatos, null, 2);
+            
+            // Crear archivo y descargar
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Compresores_BD_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            mostrarToast(`✓ Base de datos exportada (${equipos.length} equipos)`);
+        }
+
+        // Importar Base de Datos
+        function importarBaseDatos(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    
+                    // Validar estructura
+                    if (!json.equipos || !Array.isArray(json.equipos)) {
+                        throw new Error('Archivo JSON inválido');
+                    }
+                    
+                    // Preguntar si reemplazar o combinar
+                    const equiposActuales = JSON.parse(localStorage.getItem('compresores') || '[]');
+                    
+                    let mensaje = `Se van a importar ${json.equipos.length} equipos.\n\n`;
+                    if (equiposActuales.length > 0) {
+                        mensaje += `Actualmente tienes ${equiposActuales.length} equipos.\n\n`;
+                        mensaje += '¿Qué deseas hacer?\n\n';
+                        mensaje += 'OK = Combinar (mantener ambos)\n';
+                        mensaje += 'CANCELAR = Reemplazar (borrar actuales)';
+                        
+                        if (confirm(mensaje)) {
+                            // Combinar - agregar sin duplicar por código
+                            const codigos = new Set(equiposActuales.map(e => e.codigo));
+                            json.equipos.forEach(equipo => {
+                                if (!codigos.has(equipo.codigo)) {
+                                    equiposActuales.push(equipo);
+                                } else {
+                                    // Actualizar el existente
+                                    const index = equiposActuales.findIndex(e => e.codigo === equipo.codigo);
+                                    equiposActuales[index] = equipo;
+                                }
+                            });
+                            localStorage.setItem('compresores', JSON.stringify(equiposActuales));
+                            mostrarToast(`✓ ${json.equipos.length} equipos importados (combinados)`);
+                        } else {
+                            // Reemplazar
+                            localStorage.setItem('compresores', JSON.stringify(json.equipos));
+                            mostrarToast(`✓ ${json.equipos.length} equipos importados (reemplazados)`);
+                        }
+                    } else {
+                        // No hay equipos, simplemente importar
+                        localStorage.setItem('compresores', JSON.stringify(json.equipos));
+                        mostrarToast(`✓ ${json.equipos.length} equipos importados`);
+                    }
+                    
+                    // Actualizar desplegable
+                    actualizarDesplegableModelos();
+                    
+                } catch (error) {
+                    console.error('Error al importar:', error);
+                    mostrarToast('❌ Error al importar: ' + error.message);
+                }
+            };
+            
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Actualizar header
+        function actualizarHeader() {
+            document.getElementById('equipoCodigo').textContent = equipoActual.codigo || 'AX ---';
+            document.getElementById('equipoInfo').textContent = 
+                `Cliente: ${equipoActual.cliente || '-'} | Modelo: ${equipoActual.modelo || '-'}`;
+            document.getElementById('equipoSerie').textContent = 
+                `Nº Serie/Año: ${equipoActual.num_serie || '-'}`;
+        }
+
+        // Modal
+        function cerrarModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        // Cerrar modal al hacer click fuera
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('show');
+            }
+        });
+
+        // Toast
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Cargar datos al inicio
+        function cargarDatosLocalStorage() {
+            const equipos = JSON.parse(localStorage.getItem('compresores') || '[]');
+            console.log(`📊 Equipos en localStorage: ${equipos.length}`);
+        }
+    </script>
+
+
+</body></html>

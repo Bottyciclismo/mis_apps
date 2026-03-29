@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico de Averías - SOLUCIONADO</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .animate-slide-up { animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, memo } = React;
+
+        const Icons = {
+            Settings: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>),
+            Plus: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>),
+            Edit: () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>),
+            Trash: () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>),
+            AlertTriangle: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>),
+            Wrench: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>),
+            ChevronRight: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>),
+            ArrowLeft: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>),
+            CheckCircle: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>),
+            Tag: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>),
+            X: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>),
+            Save: () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>)
+        };
+
+        // COMPONENTE MODAL INDEPENDIENTE (NO SE RE-RENDERIZA)
+        const EditModal = memo(({ show, type, editingItem, onClose, onSave }) => {
+            const [localFormData, setLocalFormData] = useState({});
+            const [localSteps, setLocalSteps] = useState(['']);
+            const [localWarnings, setLocalWarnings] = useState(['']);
+
+            useEffect(() => {
+                if (show) {
+                    if (editingItem) {
+                        setLocalFormData(editingItem);
+                        if (type === 'problem') {
+                            setLocalSteps(editingItem.steps || ['']);
+                            setLocalWarnings(editingItem.warnings || ['']);
+                        }
+                    } else {
+                        setLocalFormData({});
+                        setLocalSteps(['']);
+                        setLocalWarnings(['']);
+                    }
+                }
+            }, [show, editingItem, type]);
+
+            if (!show) return null;
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (type === 'problem') {
+                    onSave({
+                        ...localFormData,
+                        steps: localSteps.filter(s => s.trim()),
+                        warnings: localWarnings.filter(w => w.trim())
+                    });
+                } else {
+                    onSave(localFormData);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 flex justify-between items-center">
+                            <h3 className="text-2xl font-bold">
+                                {editingItem ? 'Editar' : 'Añadir'} {type === 'type' ? 'Tipo' : type === 'model' ? 'Modelo' : 'Problema'}
+                            </h3>
+                            <button onClick={onClose} className="hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                                <Icons.X />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            {type === 'type' && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nombre del Tipo:</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={localFormData.name || ''}
+                                            onChange={(e) => setLocalFormData({...localFormData, name: e.target.value})}
+                                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                                            placeholder="Ej: Compresor de Tornillo"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Imagen/Icono del Compresor:</label>
+                                        
+                                        <div className="mb-4">
+                                            <div className="flex gap-2 mb-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setLocalFormData({...localFormData, iconType: 'emoji'})}
+                                                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                                                        (localFormData.iconType || 'emoji') === 'emoji' 
+                                                        ? 'bg-purple-600 text-white' 
+                                                        : 'bg-gray-200 text-gray-700'
+                                                    }`}
+                                                >
+                                                    😊 Emoji
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setLocalFormData({...localFormData, iconType: 'image'})}
+                                                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                                                        localFormData.iconType === 'image' 
+                                                        ? 'bg-purple-600 text-white' 
+                                                        : 'bg-gray-200 text-gray-700'
+                                                    }`}
+                                                >
+                                                    🖼️ Imagen
+                                                </button>
+                                            </div>
+
+                                            {(localFormData.iconType || 'emoji') === 'emoji' ? (
+                                                <div>
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        value={localFormData.icon || ''}
+                                                        onChange={(e) => setLocalFormData({...localFormData, icon: e.target.value})}
+                                                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none text-3xl text-center"
+                                                        placeholder="🔩"
+                                                    />
+                                                    <p className="text-xs text-gray-500 mt-2 text-center">
+                                                        Escribe o pega un emoji (ej: 🔩 ⚙️ 🌀 💨 📐)
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => {
+                                                                    setLocalFormData({...localFormData, icon: reader.result});
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        }}
+                                                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                                                    />
+                                                    {localFormData.icon && localFormData.iconType === 'image' && (
+                                                        <div className="mt-3 text-center">
+                                                            <p className="text-sm font-medium text-gray-700 mb-2">Vista previa:</p>
+                                                            <img 
+                                                                src={localFormData.icon} 
+                                                                alt="Preview" 
+                                                                className="w-24 h-24 object-cover rounded-lg mx-auto border-2 border-gray-300"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    <p className="text-xs text-gray-500 mt-2 text-center">
+                                                        Sube una imagen del tipo de compresor (PNG, JPG, etc.)
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {type === 'model' && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nombre del Modelo:</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={localFormData.name || ''}
+                                            onChange={(e) => setLocalFormData({...localFormData, name: e.target.value})}
+                                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                                            placeholder="Ej: Atlas Copco GA Series"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Fabricante:</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={localFormData.manufacturer || ''}
+                                            onChange={(e) => setLocalFormData({...localFormData, manufacturer: e.target.value})}
+                                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                                            placeholder="Ej: Atlas Copco"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Potencia:</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={localFormData.power || ''}
+                                            onChange={(e) => setLocalFormData({...localFormData, power: e.target.value})}
+                                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                                            placeholder="Ej: 7.5-500 kW"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Imagen del Modelo (opcional):</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        setLocalFormData({...localFormData, image: reader.result});
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                                        />
+                                        {localFormData.image && (
+                                            <div className="mt-3">
+                                                <p className="text-sm font-medium text-gray-700 mb-2">Vista previa:</p>
+                                                <div className="flex items-center gap-3">
+                                                    <img 
+                                                        src={localFormData.image} 
+                                                        alt="Preview" 
+                                                        className="w-32 h-24 object-cover rounded-lg border-2 border-gray-300"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setLocalFormData({...localFormData, image: null})}
+                                                        className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm font-medium"
+                                                    >
+                                                        Eliminar imagen
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <p className="text-xs text-gray-500 mt-2">
+                                            Sube una foto del modelo específico para identificarlo mejor
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+
+                            {type === 'problem' && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nombre del Problema:</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={localFormData.name || ''}
+                                            onChange={(e) => setLocalFormData({...localFormData, name: e.target.value})}
+                                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                                            placeholder="Ej: El compresor no arranca"
+                                        />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Pasos de Solución:</label>
+                                        {localSteps.map((step, idx) => (
+                                            <div key={idx} className="flex gap-2 mb-2">
+                                                <input
+                                                    type="text"
+                                                    value={step}
+                                                    onChange={(e) => {
+                                                        const newSteps = [...localSteps];
+                                                        newSteps[idx] = e.target.value;
+                                                        setLocalSteps(newSteps);
+                                                    }}
+                                                    className="flex-1 p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                                                    placeholder={`Paso ${idx + 1}`}
+                                                />
+                                                {localSteps.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setLocalSteps(localSteps.filter((_, i) => i !== idx))}
+                                                        className="p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                                                    >
+                                                        <Icons.Trash />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => setLocalSteps([...localSteps, ''])}
+                                            className="mt-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 font-semibold flex items-center"
+                                        >
+                                            <Icons.Plus />
+                                            <span className="ml-2">Añadir Paso</span>
+                                        </button>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Advertencias de Seguridad (opcional):</label>
+                                        {localWarnings.map((warning, idx) => (
+                                            <div key={idx} className="flex gap-2 mb-2">
+                                                <input
+                                                    type="text"
+                                                    value={warning}
+                                                    onChange={(e) => {
+                                                        const newWarnings = [...localWarnings];
+                                                        newWarnings[idx] = e.target.value;
+                                                        setLocalWarnings(newWarnings);
+                                                    }}
+                                                    className="flex-1 p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                                                    placeholder={`Advertencia ${idx + 1}`}
+                                                />
+                                                {localWarnings.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setLocalWarnings(localWarnings.filter((_, i) => i !== idx))}
+                                                        className="p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                                                    >
+                                                        <Icons.Trash />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => setLocalWarnings([...localWarnings, ''])}
+                                            className="mt-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 font-semibold flex items-center"
+                                        >
+                                            <Icons.Plus />
+                                            <span className="ml-2">Añadir Advertencia</span>
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+
+                            <div className="flex gap-3 pt-4">
+                                <button type="button" onClick={onClose} className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold transition-all">
+                                    Cancelar
+                                </button>
+                                <button type="submit" className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg font-semibold transition-all flex items-center justify-center">
+                                    <Icons.Save />
+                                    <span className="ml-2">Guardar</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        });
+
+        const CompressorApp = () => {
+            const [view, setView] = useState('user');
+            const [currentStep, setCurrentStep] = useState('type-selection');
+            const [selectedType, setSelectedType] = useState('');
+            const [selectedModel, setSelectedModel] = useState('');
+            const [selectedProblem, setProblem] = useState('');
+            const [currentSolutionStep, setCurrentSolutionStep] = useState(0);
+
+            const [types, setTypes] = useState([]);
+            const [models, setModels] = useState({});
+            const [problems, setProblems] = useState({});
+
+            const [adminSection, setAdminSection] = useState('types');
+            const [showModal, setShowModal] = useState(false);
+            const [modalType, setModalType] = useState('');
+            const [editingItem, setEditingItem] = useState(null);
+            const [selectedTypeForModel, setSelectedTypeForModel] = useState('');
+            const [selectedModelForProblem, setSelectedModelForProblem] = useState('');
+
+            useEffect(() => {
+                const savedData = localStorage.getItem('compressorData');
+                if (savedData) {
+                    try {
+                        const data = JSON.parse(savedData);
+                        setTypes(data.types || []);
+                        setModels(data.models || {});
+                        setProblems(data.problems || {});
+                    } catch (error) {
+                        initializeDefaultData();
+                    }
+                } else {
+                    initializeDefaultData();
+                }
+            }, []);
+
+            const initializeDefaultData = () => {
+                const defaultData = {
+                    types: [
+                        { id: 'tornillo-rotativo', name: 'Compresor de Tornillo Rotativo', icon: '🔩' },
+                        { id: 'piston-reciprocante', name: 'Compresor de Pistón Reciprocante', icon: '⚙️' }
+                    ],
+                    models: {
+                        'tornillo-rotativo': [
+                            { id: 'atlas-copco-ga', name: 'Atlas Copco GA Series', power: '7.5-500 kW', manufacturer: 'Atlas Copco' }
+                        ]
+                    },
+                    problems: {
+                        'atlas-copco-ga': [
+                            {
+                                id: 'no-arranca',
+                                name: 'El compresor no arranca',
+                                steps: ['Verificar interruptor', 'Comprobar suministro eléctrico', 'Revisar fusibles'],
+                                warnings: ['Desconectar alimentación antes de revisar']
+                            }
+                        ]
+                    }
+                };
+                setTypes(defaultData.types);
+                setModels(defaultData.models);
+                setProblems(defaultData.problems);
+                localStorage.setItem('compressorData', JSON.stringify(defaultData));
+            };
+
+            useEffect(() => {
+                if (types.length > 0) {
+                    localStorage.setItem('compressorData', JSON.stringify({ types, models, problems }));
+                }
+            }, [types, models, problems]);
+
+            const addType = (type) => setTypes([...types, { ...type, id: Date.now().toString() }]);
+            const editType = (id, updatedType) => setTypes(types.map(t => t.id === id ? { ...t, ...updatedType } : t));
+            const deleteType = (id) => {
+                if (confirm('¿Eliminar este tipo?')) {
+                    setTypes(types.filter(t => t.id !== id));
+                    const newModels = { ...models };
+                    delete newModels[id];
+                    setModels(newModels);
+                }
+            };
+
+            const addModel = (typeId, model) => {
+                if (!typeId) { alert('Selecciona un tipo primero'); return; }
+                setModels({ ...models, [typeId]: [...(models[typeId] || []), { ...model, id: Date.now().toString() }] });
+            };
+            const editModel = (typeId, modelId, updatedModel) => {
+                setModels({ ...models, [typeId]: models[typeId].map(m => m.id === modelId ? { ...m, ...updatedModel } : m) });
+            };
+            const deleteModel = (typeId, modelId) => {
+                if (confirm('¿Eliminar?')) {
+                    setModels({ ...models, [typeId]: models[typeId].filter(m => m.id !== modelId) });
+                }
+            };
+
+            const addProblem = (modelId, problem) => {
+                setProblems({ ...problems, [modelId]: [...(problems[modelId] || []), { ...problem, id: Date.now().toString() }] });
+            };
+            const editProblem = (modelId, problemId, updatedProblem) => {
+                setProblems({ ...problems, [modelId]: problems[modelId].map(p => p.id === problemId ? { ...p, ...updatedProblem } : p) });
+            };
+            const deleteProblem = (modelId, problemId) => {
+                if (confirm('¿Eliminar?')) {
+                    setProblems({ ...problems, [modelId]: problems[modelId].filter(p => p.id !== problemId) });
+                }
+            };
+
+            const handleSave = (data) => {
+                if (modalType === 'type') {
+                    editingItem ? editType(editingItem.id, data) : addType(data);
+                } else if (modalType === 'model') {
+                    if (!selectedTypeForModel) { alert('Selecciona un tipo'); return; }
+                    editingItem ? editModel(selectedTypeForModel, editingItem.id, data) : addModel(selectedTypeForModel, data);
+                } else if (modalType === 'problem') {
+                    if (!selectedModelForProblem) { alert('Selecciona un modelo'); return; }
+                    editingItem ? editProblem(selectedModelForProblem, editingItem.id, data) : addProblem(selectedModelForProblem, data);
+                }
+                setShowModal(false);
+                setEditingItem(null);
+            };
+
+            const UserView = () => {
+                const handleTypeSelect = (typeId) => {
+                    setSelectedType(typeId);
+                    setCurrentStep('model-selection');
+                };
+
+                const handleModelSelect = (modelId) => {
+                    setSelectedModel(modelId);
+                    setCurrentStep('problem-selection');
+                };
+
+                const handleProblemSelect = (problemId) => {
+                    setProblem(problemId);
+                    setCurrentStep('solution-steps');
+                    setCurrentSolutionStep(0);
+                };
+
+                const handleBack = () => {
+                    if (currentStep === 'solution-steps') setCurrentStep('problem-selection');
+                    else if (currentStep === 'problem-selection') setCurrentStep('model-selection');
+                    else if (currentStep === 'model-selection') setCurrentStep('type-selection');
+                };
+
+                if (currentStep === 'type-selection') {
+                    return (
+                        <div className="animate-slide-up">
+                            <div className="text-center mb-8">
+                                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
+                                    <Icons.Settings />
+                                </div>
+                                <h2 className="text-3xl font-bold text-gray-800 mb-2">Selecciona el Tipo de Compresor</h2>
+                            </div>
+                            <div className="grid gap-4">
+                                {types.map((type) => (
+                                    <button key={type.id} onClick={() => handleTypeSelect(type.id)} className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:shadow-xl transition-all text-left">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-4">
+                                                {type.iconType === 'image' ? (
+                                                    <img src={type.icon} alt={type.name} className="w-16 h-16 object-cover rounded-lg" />
+                                                ) : (
+                                                    <span className="text-4xl">{type.icon}</span>
+                                                )}
+                                                <h3 className="text-lg font-semibold">{type.name}</h3>
+                                            </div>
+                                            <Icons.ChevronRight />
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                }
+
+                if (currentStep === 'model-selection') {
+                    const modelsList = models[selectedType] || [];
+                    return (
+                        <div className="animate-slide-up">
+                            <button onClick={handleBack} className="flex items-center text-purple-600 mb-6 font-medium">
+                                <Icons.ArrowLeft /><span className="ml-2">Volver</span>
+                            </button>
+                            <div className="text-center mb-8">
+                                <h2 className="text-3xl font-bold mb-2">Modelo Específico</h2>
+                            </div>
+                            <div className="grid gap-4">
+                                {modelsList.map((model) => (
+                                    <button key={model.id} onClick={() => handleModelSelect(model.id)} className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-pink-500 hover:shadow-xl transition-all text-left">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4 flex-1">
+                                                {model.image && (
+                                                    <img 
+                                                        src={model.image} 
+                                                        alt={model.name} 
+                                                        className="w-20 h-16 object-cover rounded-lg border-2 border-gray-300"
+                                                    />
+                                                )}
+                                                <div className="flex-1">
+                                                    <h3 className="text-lg font-semibold mb-2">{model.name}</h3>
+                                                    <div className="text-sm text-gray-500">
+                                                        <span>📦 {model.manufacturer}</span> <span className="ml-3">⚡ {model.power}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Icons.ChevronRight />
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                }
+
+                if (currentStep === 'problem-selection') {
+                    const problemsList = problems[selectedModel] || [];
+                    return (
+                        <div className="animate-slide-up">
+                            <button onClick={handleBack} className="flex items-center text-purple-600 mb-6 font-medium">
+                                <Icons.ArrowLeft /><span className="ml-2">Volver</span>
+                            </button>
+                            <div className="text-center mb-8">
+                                <h2 className="text-3xl font-bold mb-2">¿Qué problema presenta?</h2>
+                            </div>
+                            <div className="grid gap-4">
+                                {problemsList.map((problem) => (
+                                    <button key={problem.id} onClick={() => handleProblemSelect(problem.id)} className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-orange-500 hover:shadow-xl transition-all text-left">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-lg font-semibold">{problem.name}</h3>
+                                            <Icons.ChevronRight />
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                }
+
+                if (currentStep === 'solution-steps') {
+                    const problem = problems[selectedModel]?.find(p => p.id === selectedProblem);
+                    if (!problem) return null;
+                    const totalSteps = problem.steps.length;
+                    const progress = ((currentSolutionStep + 1) / totalSteps) * 100;
+
+                    return (
+                        <div className="animate-slide-up">
+                            <button onClick={handleBack} className="flex items-center text-purple-600 mb-6 font-medium">
+                                <Icons.ArrowLeft /><span className="ml-2">Volver</span>
+                            </button>
+                            <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-xl mb-6 border-2 border-green-200">
+                                <h2 className="text-xl font-bold">{problem.name}</h2>
+                            </div>
+                            {problem.warnings && problem.warnings.length > 0 && (
+                                <div className="bg-red-50 border-l-4 border-red-500 p-5 rounded-lg mb-6">
+                                    <h3 className="font-bold text-red-800 mb-2">⚠️ Advertencias</h3>
+                                    <ul className="text-sm text-red-700 space-y-1">
+                                        {problem.warnings.map((w, i) => <li key={i}>• {w}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+                            <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-gray-100">
+                                <div className="mb-6">
+                                    <div className="flex justify-between mb-2">
+                                        <span className="text-sm font-semibold">Paso {currentSolutionStep + 1} de {totalSteps}</span>
+                                        <span className="text-sm font-semibold text-green-600">{Math.round(progress)}%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-3 rounded-full transition-all" style={{width: `${progress}%`}}></div>
+                                    </div>
+                                </div>
+                                <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg mb-6">
+                                    <p className="text-lg font-medium">{problem.steps[currentSolutionStep]}</p>
+                                </div>
+                                <div className="flex space-x-4">
+                                    {currentSolutionStep > 0 && (
+                                        <button onClick={() => setCurrentSolutionStep(currentSolutionStep - 1)} className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold">← Anterior</button>
+                                    )}
+                                    {currentSolutionStep < totalSteps - 1 ? (
+                                        <button onClick={() => setCurrentSolutionStep(currentSolutionStep + 1)} className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold">Siguiente →</button>
+                                    ) : (
+                                        <button onClick={() => { setCurrentStep('type-selection'); setSelectedType(''); setSelectedModel(''); setProblem(''); }} className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold">Finalizar</button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+            };
+
+            const AdminView = () => (
+                <div>
+                    <div className="mb-6 flex gap-2 border-b-2">
+                        {['types', 'models', 'problems'].map(section => (
+                            <button key={section} onClick={() => setAdminSection(section)} className={`px-6 py-3 font-semibold ${adminSection === section ? 'border-b-4 border-purple-600 text-purple-600' : 'text-gray-600'}`}>
+                                {section === 'types' ? 'Tipos' : section === 'models' ? 'Modelos' : 'Problemas'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {adminSection === 'types' && (
+                        <div>
+                            <div className="flex justify-between mb-6">
+                                <h3 className="text-2xl font-bold">Tipos de Compresores</h3>
+                                <button onClick={() => { setModalType('type'); setEditingItem(null); setShowModal(true); }} className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold">
+                                    <Icons.Plus /><span className="ml-2">Añadir</span>
+                                </button>
+                            </div>
+                            <div className="grid gap-4">
+                                {types.map((type) => (
+                                    <div key={type.id} className="p-5 bg-white border-2 rounded-xl flex justify-between items-center">
+                                        <div className="flex items-center space-x-4">
+                                            {type.iconType === 'image' ? (
+                                                <img src={type.icon} alt={type.name} className="w-12 h-12 object-cover rounded-lg" />
+                                            ) : (
+                                                <span className="text-4xl">{type.icon}</span>
+                                            )}
+                                            <span className="font-semibold text-lg">{type.name}</span>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            <button onClick={() => { setModalType('type'); setEditingItem(type); setShowModal(true); }} className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                                <Icons.Edit />
+                                            </button>
+                                            <button onClick={() => deleteType(type.id)} className="p-2 bg-red-100 text-red-600 rounded-lg">
+                                                <Icons.Trash />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {adminSection === 'models' && (
+                        <div>
+                            <div className="mb-6">
+                                <select value={selectedTypeForModel} onChange={(e) => setSelectedTypeForModel(e.target.value)} className="w-full p-3 border-2 rounded-lg">
+                                    <option value="">-- Selecciona tipo --</option>
+                                    {types.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                </select>
+                            </div>
+                            {selectedTypeForModel && (
+                                <>
+                                    <div className="flex justify-between mb-6">
+                                        <h3 className="text-2xl font-bold">Modelos</h3>
+                                        <button onClick={() => { setModalType('model'); setEditingItem(null); setShowModal(true); }} className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold">
+                                            <Icons.Plus /><span className="ml-2">Añadir</span>
+                                        </button>
+                                    </div>
+                                    <div className="grid gap-4">
+                                        {(models[selectedTypeForModel] || []).map((model) => (
+                                            <div key={model.id} className="p-5 bg-white border-2 rounded-xl flex justify-between items-center">
+                                                <div className="flex items-center gap-4 flex-1">
+                                                    {model.image && (
+                                                        <img 
+                                                            src={model.image} 
+                                                            alt={model.name} 
+                                                            className="w-16 h-12 object-cover rounded-lg border-2 border-gray-300"
+                                                        />
+                                                    )}
+                                                    <div className="flex-1">
+                                                        <h4 className="font-semibold text-lg mb-1">{model.name}</h4>
+                                                        <div className="text-sm text-gray-600">
+                                                            <span>📦 {model.manufacturer}</span> <span className="ml-3">⚡ {model.power}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <button onClick={() => { setModalType('model'); setEditingItem(model); setShowModal(true); }} className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                                        <Icons.Edit />
+                                                    </button>
+                                                    <button onClick={() => deleteModel(selectedTypeForModel, model.id)} className="p-2 bg-red-100 text-red-600 rounded-lg">
+                                                        <Icons.Trash />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    {adminSection === 'problems' && (
+                        <div>
+                            <div className="mb-6">
+                                <select value={selectedTypeForModel} onChange={(e) => { setSelectedTypeForModel(e.target.value); setSelectedModelForProblem(''); }} className="w-full p-3 border-2 rounded-lg mb-4">
+                                    <option value="">-- Selecciona tipo --</option>
+                                    {types.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                </select>
+                                {selectedTypeForModel && (
+                                    <select value={selectedModelForProblem} onChange={(e) => setSelectedModelForProblem(e.target.value)} className="w-full p-3 border-2 rounded-lg">
+                                        <option value="">-- Selecciona modelo --</option>
+                                        {(models[selectedTypeForModel] || []).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                                    </select>
+                                )}
+                            </div>
+                            {selectedModelForProblem && (
+                                <>
+                                    <div className="flex justify-between mb-6">
+                                        <h3 className="text-2xl font-bold">Problemas</h3>
+                                        <button onClick={() => { setModalType('problem'); setEditingItem(null); setShowModal(true); }} className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold">
+                                            <Icons.Plus /><span className="ml-2">Añadir</span>
+                                        </button>
+                                    </div>
+                                    <div className="grid gap-4">
+                                        {(problems[selectedModelForProblem] || []).map((problem) => (
+                                            <div key={problem.id} className="p-5 bg-white border-2 rounded-xl">
+                                                <div className="flex justify-between mb-3">
+                                                    <h4 className="font-semibold text-lg">{problem.name}</h4>
+                                                    <div className="flex space-x-2">
+                                                        <button onClick={() => { setModalType('problem'); setEditingItem(problem); setShowModal(true); }} className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                                            <Icons.Edit />
+                                                        </button>
+                                                        <button onClick={() => deleteProblem(selectedModelForProblem, problem.id)} className="p-2 bg-red-100 text-red-600 rounded-lg">
+                                                            <Icons.Trash />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="text-sm text-gray-600">
+                                                    <p>Pasos: {problem.steps?.length || 0} | Advertencias: {problem.warnings?.length || 0}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-6">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="text-center mb-8">
+                            <h1 className="text-5xl font-bold gradient-text mb-3">Sistema de Diagnóstico</h1>
+                        </div>
+                        <div className="flex justify-center gap-4 mb-8">
+                            <button onClick={() => setView('user')} className={`px-8 py-3 rounded-xl font-bold ${view === 'user' ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg' : 'bg-white text-gray-700'}`}>
+                                🔧 Diagnóstico
+                            </button>
+                            <button onClick={() => setView('admin')} className={`px-8 py-3 rounded-xl font-bold ${view === 'admin' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' : 'bg-white text-gray-700'}`}>
+                                ⚙️ Administración
+                            </button>
+                        </div>
+                        <div className="bg-white rounded-3xl shadow-2xl p-8">
+                            {view === 'user' ? <UserView /> : <AdminView />}
+                        </div>
+
+                        <EditModal
+                            show={showModal}
+                            type={modalType}
+                            editingItem={editingItem}
+                            onClose={() => { setShowModal(false); setEditingItem(null); }}
+                            onSave={handleSave}
+                        />
+
+                        <div className="text-center mt-6 text-sm text-gray-500">
+                            <p>💾 Guardado automático • {types.length} tipos • {Object.values(models).reduce((a, m) => a + m.length, 0)} modelos</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<CompressorApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>

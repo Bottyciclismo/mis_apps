@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<!-- saved from url=(0069)file:///C:/Users/botty/Downloads/calculadora_aire_comprimido_pro.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Calculadora Aire Comprimido PRO</title>
+
+<style>
+
+:root{
+--bg:#f4f6f8;
+--card:#b2ebf2;
+--text:#2c3e50;
+--accent:#0077ff;
+}
+
+@media (prefers-color-scheme: dark){
+
+:root{
+--bg:#1e1e1e;
+--card:#2b2b2b;
+--text:#e4e4e4;
+--accent:#4da3ff;
+}
+
+}
+
+body{
+font-family:"Segoe UI",Arial;
+background:var(--bg);
+margin:0;
+padding:15px;
+display:flex;
+justify-content:center;
+color:var(--text);
+}
+
+.container{
+background:var(--card);
+padding:20px;
+border-radius:14px;
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
+width:100%;
+max-width:520px;
+}
+
+h1{
+text-align:center;
+margin-bottom:20px;
+}
+
+.section{
+margin-bottom:20px;
+}
+
+label{
+display:flex;
+justify-content:space-between;
+margin-bottom:10px;
+}
+
+input,select{
+width:90px;
+padding:6px;
+border-radius:6px;
+border:1px solid #bbb;
+text-align:center;
+}
+
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:10px;
+background:var(--accent);
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+.result{
+margin-top:20px;
+background:rgba(0,119,255,0.08);
+padding:15px;
+border-radius:10px;
+line-height:1.6;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Calculadora Aire Comprimido PRO by Botty</h1>
+
+<div class="section">
+
+<h3>🔧 Herramientas</h3>
+
+<label>💨 Pistolas soplado
+<input id="pistolas" type="number" inputmode="numeric" value="0">
+</label>
+
+<label>🔩 Llaves impacto
+<input id="llaves" type="number" inputmode="numeric" value="0">
+</label>
+
+<label>🪵 Lijadoras
+<input id="lijadoras" type="number" inputmode="numeric" value="0">
+</label>
+
+<label>✨ Pulidoras
+<input id="pulidoras" type="number" inputmode="numeric" value="0">
+</label>
+
+</div>
+
+<div class="section">
+
+<h3>⚙️ Compresor</h3>
+
+<label>Tipo compresor
+<select id="tipo">
+<option value="tornillo">Tornillo</option>
+<option value="piston">Pistón</option>
+</select>
+</label>
+
+<label>Presión (bar)
+<input id="presion" type="number" inputmode="numeric" value="7">
+</label>
+
+</div>
+
+<div class="section">
+
+<h3>📏 Red de aire</h3>
+<div class="section">
+
+<h3>🔍 Diagnóstico de instalación (opcional)</h3>
+
+<label>Caudal compresor (l/min)
+<input id="caudalCompresor" type="number" inputmode="numeric" value="">
+</label>
+
+<label>Diámetro tubería
+<select id="diametroDiagnostico">
+<option value="">Automático</option>
+<option value="16">1/2"</option>
+<option value="26">3/4"</option>
+<option value="33">1"</option>
+<option value="42">1 1/4"</option>
+<option value="48">1 1/2"</option>
+</select>
+</label>
+
+</div>
+<label>Longitud (m)
+  <label>Tubería usada (opcional)
+<select id="tuberiaUsuario">
+<option value="auto">Automática</option>
+<option value="16">1/2"</option>
+<option value="26">3/4"</option>
+<option value="33">1"</option>
+<option value="42">1 1/4"</option>
+<option value="48">1 1/2"</option>
+</select>
+</label>
+<input id="longitud" type="number" inputmode="numeric" value="20">
+</label>
+
+</div>
+
+<button type="button" onclick="calcular()">Calcular instalación</button>
+
+<div class="result" id="resultado">
+
+Introduce los datos y pulsa calcular.
+
+</div>
+
+</div>
+
+<script>
+
+function num(id,def){
+let v = Number(document.getElementById(id).value);
+if(isNaN(v)) return def;
+return v;
+}
+
+function depositoComercial(v){
+
+if(v<=200) return 200;
+if(v<=300) return 300;
+if(v<=500) return 500;
+if(v<=750) return 750;
+if(v<=1000) return 1000;
+if(v<=1500) return 1500;
+
+return Math.ceil(v/500)*500;
+
+}
+
+function calcular(){
+
+let pistolas = num("pistolas",0);
+let llaves = num("llaves",0);
+let lijadoras = num("lijadoras",0);
+let pulidoras = num("pulidoras",0);
+let presion = num("presion",7);
+let longitud = num("longitud",20);
+
+let tipo = document.getElementById("tipo").value;
+
+let caudal =
+(pistolas*150)+
+(llaves*250)+
+(lijadoras*300)+
+(pulidoras*350);
+
+let factorPresion = presion/7;
+
+let caudalReal = caudal*factorPresion*0.7;
+// modo diagnóstico
+let caudalDiagnostico = Number(document.getElementById("caudalCompresor").value);
+if(!isNaN(caudalDiagnostico) && caudalDiagnostico>0){
+caudalReal = caudalDiagnostico;
+}
+
+let potencia;
+
+if(tipo=="piston")
+potencia = caudalReal/80;
+else
+potencia = caudalReal/100;
+
+let depositoCalculado = caudalReal*0.3;
+
+let deposito = depositoComercial(depositoCalculado);
+
+// cálculo diámetro real
+
+// cálculo diámetro recomendado (tabla práctica)
+
+let diametroTuberia="";
+let diametroMM=0;
+
+if(caudalReal<=500){
+diametroTuberia='1/2"';
+diametroMM=16;
+}
+else if(caudalReal<=1000){
+diametroTuberia='3/4"';
+diametroMM=26;
+}
+else if(caudalReal<=2000){
+diametroTuberia='1"';
+diametroMM=33;
+}
+else if(caudalReal<=3500){
+diametroTuberia='1 1/4"';
+diametroMM=42;
+}
+else{
+diametroTuberia='1 1/2"';
+diametroMM=48;
+}
+
+// cálculo velocidad aproximada
+
+// convertir caudal a volumen real dentro de la tubería
+let Q = (caudalReal / (presion + 1)) / 60000;
+
+// diámetro en metros
+let diametroCalculo = diametroMM;
+
+// tubería elegida por el usuario
+let diametroUsuario = document.getElementById("tuberiaUsuario").value;
+
+// tubería para diagnóstico
+let diametroDiag = document.getElementById("diametroDiagnostico").value;
+
+if(diametroUsuario !== "auto"){
+diametroCalculo = Number(diametroUsuario);
+}
+
+if(diametroDiag){
+diametroCalculo = Number(diametroDiag);
+}
+
+let diametroM = diametroCalculo / 1000;
+
+// radio de la tubería
+let radio = diametroM / 2;
+
+// área de la tubería
+let area = Math.PI * radio * radio;
+
+// velocidad del aire
+let velocidadReal = Q / area;
+
+// pérdida presión
+
+let perdida = (caudalReal/1000)*(longitud/50)*0.1;
+
+// estado tubería
+let diagnostico="";
+
+if(velocidadReal>12){
+diagnostico="⚠ Posible restricción en la red o tubería pequeña";
+}
+else if(velocidadReal<2){
+diagnostico="ℹ Red sobredimensionada";
+}
+else{
+diagnostico="✔ Dimensionado razonable";
+}  
+
+let estado="";
+let color="";
+
+if(velocidadReal<=8){
+
+estado="✔ Dimensionado correcto";
+color="green";
+
+}
+else if(velocidadReal<=10){
+
+estado="⚠ Aceptable pero mejorable";
+color="orange";
+
+}
+else{
+
+estado="❌ Tubería demasiado pequeña";
+color="red";
+
+}
+
+document.getElementById("resultado").innerHTML=
+
+"<b>Caudal estimado:</b> "+Math.round(caudalReal)+" l/min<br>"+
+"<b>Compresor recomendado:</b> "+potencia.toFixed(1)+" kW ("+tipo+")<br>"+
+"<b>Depósito recomendado:</b> "+deposito+" L<br>"+
+"<b>Tubería recomendada:</b> "+diametroTuberia+" ("+diametroMM+" mm)<br>"+
+"<b>Tubería analizada:</b> "+diametroCalculo+" mm<br>"+
+"<b>Pérdida presión estimada:</b> "+perdida.toFixed(2)+" bar<br>"+
+"<b>Velocidad del aire:</b> "+velocidadReal.toFixed(1)+" m/s<br>"+
+"<b>Estado tubería:</b> <span style='color:"+color+"'>"+estado+"</span>";
+
+}
+
+</script>
+
+
+
+</body></html>
