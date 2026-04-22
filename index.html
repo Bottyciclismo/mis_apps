@@ -191,6 +191,11 @@ function abrirApp(ruta) {
   visor.style.display = "block";
   document.getElementById("cerrar").style.display = "block";
 }
+  if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log("Service Worker OK"))
+    .catch(err => console.log("Error:", err));
+}
 
 function cerrarApp() {
   const visor = document.getElementById("visor");
